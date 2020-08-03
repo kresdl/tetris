@@ -27,7 +27,7 @@ const pgfx = prev.getContext('2d') as CanvasRenderingContext2D
 const scoreEm = document.getElementById('score') as HTMLParagraphElement
 scoreEm.innerText = '0'
 
-const pile = new Uint8Array(WIDTH * HEIGHT);
+const pile = new Uint8Array(WIDTH * HEIGHT)
 
 // Get sample model for array-like square grid with specific orientation as 
 // [offset, delta with respect to game x, delta with respect to game y]
@@ -54,7 +54,7 @@ const generatePiece = (): State => {
   }
 }
 
-// Check for full rows and remove them
+// Recursively check for full row and sink pile accordingly. Return cleared row count
 const scanAndClearRows = (top: number): number => {
   const cols = [...Array(WIDTH)].map((_, i) => i)
   const rows = [...Array(HEIGHT - top)].map((_, i) => i + top)
@@ -64,8 +64,11 @@ const scanAndClearRows = (top: number): number => {
   )
 
   if (!full) return 0
+
+  // Update data model
   pile.copyWithin(top * WIDTH, (top - 1) * WIDTH, full * WIDTH)
 
+  // Update viewport
   const snap = gfx.getImageData(0, SCALE * (top - 1), SCALE * WIDTH, SCALE * (full - top + 1))
   gfx.putImageData(snap, 0, SCALE * top)
 
@@ -122,7 +125,7 @@ const drawPiece = (piece: State, alpha: number = 1, rule: string = 'source-over'
   gfx.drawImage(img, 0, 0)
 }
 
-// Render preview
+// Render preview piece
 const drawPreview = (piece: State) => {
   pgfx.clearRect(0, 0, 4 * SCALE, 4 * SCALE)
   pgfx.drawImage(bitmaps[piece.id], 0, 0)
@@ -154,7 +157,7 @@ const main = async () => {
   let top = HEIGHT
   let score = 0
 
-  // Sideway-movements and rotation
+  // Move sideway or rotate
   const move = (piece: State) => {
     if (insertIntoDataModel(piece, true)) {
       drawPiece(tile, 1, 'xor')
@@ -166,7 +169,7 @@ const main = async () => {
     }
   }
 
-  // Downward movement
+  // Move downward
   const down = () => {
     const dst = { ...tile, y: tile.y + 1 }
 
