@@ -112,6 +112,10 @@ const bottom = (piece: State): number => {
   return piece.y + d
 }
 
+// Erase piece
+const erasePiece = (piece: State) =>
+  drawPiece(piece, 1, 'destination-out')
+
 // Render piece
 const drawPiece = (piece: State, alpha: number = 1, rule: string = 'source-over') => {
   const { id, x, y, ori } = piece
@@ -133,6 +137,8 @@ const drawPreview = (piece: State) => {
 
 // Control scope
 const main = async () => {
+
+  // Prepare textures
   bitmaps = await Promise.all(
     pieces.map(([size, array, color]) => {
       const data = [...array].flatMap(p =>
@@ -160,12 +166,12 @@ const main = async () => {
   // Move sideway or rotate
   const move = (piece: State) => {
     if (insertIntoDataModel(piece, true)) {
-      drawPiece(tile, 1, 'xor')
-      drawPiece(guideTile, 1, 'destination-out')
+      erasePiece(tile)
+      erasePiece(guideTile)
       guideTile = { ...piece, y: bottom(piece) }
       drawPiece(guideTile, 0.25)
-      drawPiece(piece)
       tile = piece
+      drawPiece(tile)
     }
   }
 
@@ -174,9 +180,9 @@ const main = async () => {
     const dst = { ...tile, y: tile.y + 1 }
 
     if (insertIntoDataModel(dst, true)) {
-      drawPiece(tile, 1, 'xor')
-      drawPiece(dst)
+      erasePiece(tile)
       tile = dst
+      drawPiece(tile)
 
     } else {
       mergePiece()
@@ -185,9 +191,9 @@ const main = async () => {
 
   // Drop to bottom
   const drop = () => {
-    drawPiece(tile, 1, 'xor')
-    drawPiece(guideTile)
+    erasePiece(tile)
     tile = guideTile
+    drawPiece(tile)
     mergePiece()
   }
 
