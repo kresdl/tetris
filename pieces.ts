@@ -38,7 +38,7 @@ export const d: Piece = [
     1, 1, 1,
     0, 0, 0,
   ]),
-  [20, 180, 230]
+  [230, 80, 230]
 ]
 
 export const e: Piece = [

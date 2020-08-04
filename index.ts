@@ -3,31 +3,26 @@
 import { State } from './types.js'
 import { a, b, c, d, e, f, g } from './pieces.js'
 
-const SCALE = 20
-const WIDTH = 16
-const HEIGHT = 32
-const POINTS = [100, 250, 500, 1000]
-const INTERVAL = 200
+const SCALE = 20,
+  WIDTH = 16,
+  HEIGHT = 32,
+  POINTS = [100, 250, 500, 1000],
+  INTERVAL = 200,
 
-const pieces = [a, b, c, d, e, f, g]
+  pieces = [a, b, c, d, e, f, g],
+  game = document.getElementById('game') as HTMLCanvasElement,
+  prev = document.getElementById('preview') as HTMLCanvasElement,
+  gfx = game.getContext('2d') as CanvasRenderingContext2D,
+  pgfx = prev.getContext('2d') as CanvasRenderingContext2D,
+  scoreEm = document.getElementById('score') as HTMLParagraphElement,
+  pile = new Uint8Array(WIDTH * HEIGHT)
 
-let bitmaps: ImageBitmap[]
-
-const game = document.getElementById('game') as HTMLCanvasElement
 game.width = WIDTH * SCALE
 game.height = HEIGHT * SCALE
-
-const prev = document.getElementById('preview') as HTMLCanvasElement
 prev.width = 4 * SCALE
 prev.height = 4 * SCALE
 
-const gfx = game.getContext('2d') as CanvasRenderingContext2D
-const pgfx = prev.getContext('2d') as CanvasRenderingContext2D
-
-const scoreEm = document.getElementById('score') as HTMLParagraphElement
-scoreEm.innerText = '0'
-
-const pile = new Uint8Array(WIDTH * HEIGHT)
+let bitmaps: ImageBitmap[]
 
 // Get sample model for array-like square grid with specific orientation as 
 // [offset, delta with respect to game x, delta with respect to game y]
@@ -118,9 +113,10 @@ const erasePiece = (piece: State) =>
 
 // Render piece
 const drawPiece = (piece: State, alpha: number = 1, rule: string = 'source-over') => {
-  const { id, x, y, ori } = piece
-  const img = bitmaps[id]
-  const hs = img.width / 2
+  const { id, x, y, ori } = piece,
+    img = bitmaps[id],
+    hs = img.width / 2
+
   gfx.globalCompositeOperation = rule
   gfx.globalAlpha = alpha
   gfx.setTransform(1, 0, 0, 1, SCALE * x + hs, SCALE * y + hs)
@@ -137,31 +133,6 @@ const drawPreview = (piece: State) => {
 
 // Control scope
 const main = async () => {
-
-  // Prepare textures
-  bitmaps = await Promise.all(
-    pieces.map(([size, array, color]) => {
-      const data = [...array].flatMap(p =>
-        p ? [...color, 255] : [0, 0, 0, 0]
-      )
-
-      const bin = new Uint8ClampedArray(data)
-      const img = new ImageData(bin, size, size)
-      const scaled = SCALE * size
-
-      return createImageBitmap(img, {
-        resizeWidth: scaled,
-        resizeHeight: scaled,
-        resizeQuality: 'pixelated'
-      })
-    })
-  )
-
-  let tile = generatePiece()
-  let guideTile = { ...tile, y: bottom(tile) }
-  let next = generatePiece()
-  let top = HEIGHT
-  let score = 0
 
   // Move sideway or rotate
   const move = (piece: State) => {
@@ -211,10 +182,10 @@ const main = async () => {
 
       // Cleared rows?
       if (count) {
-        score += POINTS[count - 1]
-        scoreEm.innerText = score.toString()
+        updateScore(score + POINTS[count - 1])
         top += count
       }
+
       tile = next
       guideTile = { ...tile, y: bottom(tile) }
       next = generatePiece()
@@ -223,6 +194,37 @@ const main = async () => {
     }
   }
 
+  const updateScore = (val: number) => {
+    score = val
+    scoreEm.innerText = score.toString()
+  }
+
+  // Prepare textures
+  bitmaps = await Promise.all(
+    pieces.map(([size, array, color]) => {
+      const data = [...array].flatMap(p =>
+        p ? [...color, 255] : [0, 0, 0, 0]
+      ),
+
+        bin = new Uint8ClampedArray(data),
+        img = new ImageData(bin, size, size),
+        scaled = SCALE * size
+
+      return createImageBitmap(img, {
+        resizeWidth: scaled,
+        resizeHeight: scaled,
+        resizeQuality: 'pixelated'
+      })
+    })
+  )
+
+  let tile = generatePiece(),
+    guideTile = { ...tile, y: bottom(tile) },
+    next = generatePiece(),
+    top = HEIGHT,
+    score: number
+
+  updateScore(0)
   drawPiece(guideTile, 0.25)
   drawPreview(next)
 
@@ -230,22 +232,22 @@ const main = async () => {
 
   window.addEventListener('keydown', evt => {
     switch (evt.code) {
-      case 'KeyQ': 
+      case 'KeyQ':
         move({ ...tile, ori: (4 + tile.ori - 1) % 4 })
         break
-      case 'KeyW': 
+      case 'KeyW':
         move({ ...tile, ori: (tile.ori + 1) % 4 })
         break
-      case 'ArrowLeft': 
+      case 'ArrowLeft':
         move({ ...tile, x: tile.x - 1 })
         break
-      case 'ArrowRight': 
+      case 'ArrowRight':
         move({ ...tile, x: tile.x + 1 })
         break
-      case 'ArrowDown': 
+      case 'ArrowDown':
         down()
         break
-      case 'Space': 
+      case 'Space':
         drop()
         break
       default:
