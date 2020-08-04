@@ -102,7 +102,7 @@ const insertIntoDataModel = (piece: State, dryrun?: boolean): number | boolean =
     }
   }
 
-  return dryrun ? true : minY
+  return dryrun || minY
 }
 
 // Get pile merge y for piece 
@@ -185,10 +185,9 @@ const main = async () => {
 
   // Drop to bottom
   const drop = () => {
-    const dst = { ...tile, y: bottom(tile) }
     drawPiece(tile, 1, 'xor')
-    drawPiece(dst)
-    tile = dst
+    drawPiece(guideTile)
+    tile = guideTile
     mergePiece()
   }
 
@@ -225,30 +224,24 @@ const main = async () => {
 
   window.addEventListener('keydown', evt => {
     switch (evt.code) {
-      case 'KeyQ': {
+      case 'KeyQ': 
         move({ ...tile, ori: (4 + tile.ori - 1) % 4 })
         break
-      }
-      case 'KeyW': {
+      case 'KeyW': 
         move({ ...tile, ori: (tile.ori + 1) % 4 })
         break
-      }
-      case 'ArrowLeft': {
+      case 'ArrowLeft': 
         move({ ...tile, x: tile.x - 1 })
         break
-      }
-      case 'ArrowRight': {
+      case 'ArrowRight': 
         move({ ...tile, x: tile.x + 1 })
         break
-      }
-      case 'ArrowDown': {
+      case 'ArrowDown': 
         down()
         break
-      }
-      case 'Space': {
+      case 'Space': 
         drop()
         break
-      }
       default:
     }
   })
