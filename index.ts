@@ -1,15 +1,10 @@
 /* eslint-disable semi */
 
+import { SCALE, WIDTH, HEIGHT, POINTS, START_INTERVAL, SCORE_THRESHOLD, INTERVAL_DECR_STEP } from './constants.js'
 import { State } from './types.js'
 import { a, b, c, d, e, f, g } from './pieces.js'
 
-const SCALE = 20,
-  WIDTH = 16,
-  HEIGHT = 32,
-  POINTS = [100, 250, 500, 1000],
-  INTERVAL = 200,
-
-  pieces = [a, b, c, d, e, f, g],
+const pieces = [a, b, c, d, e, f, g],
   game = document.getElementById('game') as HTMLCanvasElement,
   prev = document.getElementById('preview') as HTMLCanvasElement,
   gfx = game.getContext('2d') as CanvasRenderingContext2D,
@@ -100,7 +95,7 @@ const insertIntoDataModel = (piece: State, dryrun?: boolean): number | boolean =
   return dryrun || minY
 }
 
-// Get pile merge y for piece 
+// Get merge y
 const bottom = (piece: State): number => {
   let d = 0
   while (insertIntoDataModel({ ...piece, y: piece.y + d + 1 }, true)) d++
@@ -126,9 +121,14 @@ const drawPiece = (piece: State, alpha: number = 1, rule: string = 'source-over'
 }
 
 // Render preview piece
-const drawPreview = (piece: State) => {
+const drawPreview = (id: number) => {
   pgfx.clearRect(0, 0, 4 * SCALE, 4 * SCALE)
-  pgfx.drawImage(bitmaps[piece.id], 0, 0)
+  pgfx.drawImage(bitmaps[id], 0, 0)
+}
+
+const updateScore = (score: number): number => {
+  scoreEm.innerText = score.toString()
+  return score
 }
 
 // Control scope
@@ -174,15 +174,17 @@ const main = async () => {
 
     // All piled up?
     if (!minY) {
-      clearInterval(interval)
-
+      clearInterval(task)
     } else {
       top = Math.min(top, minY)
       const count = scanAndClearRows(top)
 
       // Cleared rows?
       if (count) {
-        updateScore(score + POINTS[count - 1])
+        score = updateScore(score + POINTS[count - 1])
+        clearInterval(task)
+        const interval = START_INTERVAL - INTERVAL_DECR_STEP * ~~(score / SCORE_THRESHOLD)
+        task = setInterval(down, interval)
         top += count
       }
 
@@ -190,13 +192,8 @@ const main = async () => {
       guideTile = { ...tile, y: bottom(tile) }
       next = generatePiece()
       drawPiece(guideTile, 0.25)
-      drawPreview(next)
+      drawPreview(next.id)
     }
-  }
-
-  const updateScore = (val: number) => {
-    score = val
-    scoreEm.innerText = score.toString()
   }
 
   // Prepare textures
@@ -222,13 +219,11 @@ const main = async () => {
     guideTile = { ...tile, y: bottom(tile) },
     next = generatePiece(),
     top = HEIGHT,
-    score: number
+    task = setInterval(down, START_INTERVAL),
+    score = updateScore(0)
 
-  updateScore(0)
   drawPiece(guideTile, 0.25)
-  drawPreview(next)
-
-  const interval = setInterval(down, INTERVAL)
+  drawPreview(next.id)
 
   window.addEventListener('keydown', evt => {
     switch (evt.code) {
