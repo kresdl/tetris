@@ -18,6 +18,7 @@ prev.width = 4 * SCALE
 prev.height = 4 * SCALE
 
 let bitmaps: ImageBitmap[]
+let bag: number[] = []
 
 // Get sample model for array-like square grid with specific orientation as 
 // [offset, delta with respect to game x, delta with respect to game y]
@@ -33,15 +34,14 @@ const offsetAndDeltas = (size: number, ori: number): number[] => {
   ][ori]
 }
 
-// Randomize piece and x position
+// Randomize piece
 const generatePiece = (): State => {
-  const id = ~~(Math.random() * pieces.length)
+  bag = bag.length ? bag : [0, 1, 2, 3, 4, 5, 6]
+  const [id] = bag.splice(~~(bag.length * Math.random()), 1)
   const size = pieces[id][0]
+  const x = ~~(0.5 * (WIDTH - size + 1))
 
-  return {
-    x: ~~(Math.random() * (WIDTH - size + 1)),
-    y: -2, ori: 0, id
-  }
+  return { x, y: -2, ori: 0, id }
 }
 
 // Recursively check for full row and sink pile accordingly. Return cleared row count
@@ -148,11 +148,11 @@ const main = async () => {
 
   // Move downward
   const down = () => {
-    const dst = { ...tile, y: tile.y + 1 }
+    const piece = { ...tile, y: tile.y + 1 }
 
-    if (insertIntoDataModel(dst, true)) {
+    if (insertIntoDataModel(piece, true)) {
       erasePiece(tile)
-      tile = dst
+      tile = piece
       drawPiece(tile)
 
     } else {
