@@ -10,9 +10,10 @@ body {
 }
 
 footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: top;
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-auto-rows: auto;
+  place-content: space-between;
 }
 
 p {
@@ -27,6 +28,14 @@ p {
 .label {
   color: white;
   margin-bottom: 1rem;
+}
+
+.op {
+  color: white;
+}
+
+.code {
+  color: cornflowerblue;
 }
 
 #score {
