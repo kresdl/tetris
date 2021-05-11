@@ -1,0 +1,44 @@
+body {
+  margin: 2rem;
+  background-color: #202b2f;
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.125rem;
+}
+
+.tetris {
+  width: min-content;
+}
+
+footer {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-auto-rows: auto;
+  place-content: space-between;
+}
+
+p {
+  margin: 0;
+}
+
+#game {
+  background-color: black;
+  margin-bottom: 1rem;
+}
+
+.label {
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.op {
+  color: white;
+}
+
+.code {
+  color: cornflowerblue;
+}
+
+#score {
+  text-align: right;
+  color: yellow;
+}
